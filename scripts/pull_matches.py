@@ -31,6 +31,7 @@ hit the API and see what comes back, not to assume this mapping is correct.
 
 import json
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -52,13 +53,27 @@ CLUSTER_TO_REGION_GUESS = {
 
 
 def run_explorer_query(sql: str, retries: int = 3, delay: float = 3.0) -> dict:
-    """Run a raw SQL query against OpenDota's Explorer endpoint."""
     url = f"{OPENDOTA_EXPLORER_URL}?sql={urllib.parse.quote(sql)}"
     last_err = None
     for attempt in range(retries):
         try:
-            with urllib.request.urlopen(url, timeout=30) as resp:
+            req = urllib.request.Request(
+                url,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/124.0.0.0 Safari/537.36"
+                    ),
+                    "Accept": "application/json",
+                },
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
                 return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            last_err = f"HTTP {e.code}: {body}"
+            time.sleep(delay * (attempt + 1))
         except Exception as e:  # noqa: BLE001 - want to retry on anything transient
             last_err = e
             time.sleep(delay * (attempt + 1))
@@ -72,8 +87,7 @@ def get_cluster_counts(min_start_time: int, max_start_time: int) -> dict:
     should happen before any modeling work, not after.
     """
     sql = f"""
-        SELECT cluster, COUNT(*) AS match_count,
-               COUNT(DISTINCT avg_rank_tier) AS distinct_rank_tiers
+        SELECT cluster, COUNT(*) AS match_count
         FROM public_matches
         WHERE start_time > {min_start_time} AND start_time < {max_start_time}
         GROUP BY cluster
@@ -111,20 +125,18 @@ def save_json(obj: dict, filename: str) -> Path:
 
 
 if __name__ == "__main__":
-    # Example: last ~90 days as a starting window. Adjust once you've
-    # checked what window gives you enough matches per player (see
-    # check_sample_sizes.py) — 90 days is a guess, not a tuned value.
-    now = int(time.time())
-    ninety_days_ago = now - 90 * 24 * 60 * 60
 
-    print("Pulling cluster counts for the last 90 days...")
-    counts = get_cluster_counts(ninety_days_ago, now)
-    path = save_json(counts, "cluster_counts_last_90d.json")
+    now = int(time.time())
+    end_time = now - 24 * 60 * 60          # 24h buffer past the ~20h lag
+    window_start = end_time - 6 * 60 * 60  # 6-hour window before that
+
+    print("Pulling cluster counts for a 6-hour window, offset for ingestion lag...")
+    counts = get_cluster_counts(window_start, end_time)
+    path = save_json(counts, "cluster_counts_last_6h.json")
     print(f"Saved to {path}")
     print(
         "Next: open this file, look at which cluster IDs have the highest "
         "match_count, and cross-reference against known Indian server "
-        "cluster IDs before assuming which one is India. Do not hardcode "
-        "a cluster ID from memory or from this script's placeholder dict "
-        "without checking it against this actual output."
+        "cluster IDs before assuming which one is India."
     )
+
