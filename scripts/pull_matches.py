@@ -96,17 +96,10 @@ def get_cluster_counts(min_start_time: int, max_start_time: int) -> dict:
     return run_explorer_query(sql)
 
 
-def pull_matches_for_cluster(
-    cluster_id: int,
-    min_start_time: int,
-    max_start_time: int,
-    limit: int = 50000,
-) -> dict:
-    """Pull raw match rows for a specific cluster within a time window."""
+def pull_matches_for_cluster(cluster_id, min_start_time, max_start_time, limit=50000):
     sql = f"""
         SELECT match_id, match_seq_num, radiant_win, start_time, duration,
-               avg_mmr, num_mmr, lobby_type, game_mode, avg_rank_tier,
-               num_rank_tier, cluster
+               lobby_type, game_mode, avg_rank_tier, num_rank_tier, cluster
         FROM public_matches
         WHERE cluster = {cluster_id}
           AND start_time > {min_start_time}
