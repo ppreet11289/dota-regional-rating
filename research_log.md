@@ -84,3 +84,48 @@ gone from memory within weeks if it isn't written down here.
 - Open question: what's the actual India vs SEA split across more players
   (not just one)? Running check_player_region_distribution.py next to
   find out before drawing any conclusion.
+
+  ## 2026-07-13 — Session 1
+
+- What I did: fixed a case-sensitivity bug (India tagged "IN" uppercase,
+  code checked lowercase "in", was undercounting as zero). Ran the
+  accumulating country_code checker across multiple batches.
+- What happened: 299 accounts checked total, 161 (54%) have loccountrycode
+  set at all, 15 (~5% of total, ~9% of populated) tagged "IN" specifically.
+- What this means: country_code-based identification is viable — India-
+  tagged players are a real, findable, if small, slice of the SEA pool.
+- Open question: 15 accounts is a start, not enough for the revised
+  hypothesis (needs players with >=50 matches each, per CLAIM.md
+  Revision 1). Need to keep accumulating, then separately check how many
+  matches each of these 15 (and future finds) actually has.
+
+
+
+  ## 2026-07-14 — Session 1
+
+- What I did: fixed a case-sensitivity bug found by manually inspecting
+  raw output (India tagged "IN" uppercase, code checked lowercase "in",
+  was silently undercounting as zero). Ran the accumulating country_code
+  checker to 299 total accounts checked. Then checked total match counts
+  for all India-tagged accounts found so far via OpenDota's /wl endpoint.
+- What happened: 15 India-tagged accounts found (~5% of 299 checked, 54%
+  of which had loccountrycode populated at all). Of those 15, 11 have
+  >=50 recorded matches (several with 3,000-6,800+), meeting the sample
+  threshold set in CLAIM.md Revision 1. 4 accounts showed exactly 0
+  matches via /wl — likely private match-history settings (separate from
+  having a public profile/country code), not accounts with genuinely no
+  games.
+- What this means: the revised hypothesis is buildable. 11 viable
+  accounts is a real starting sample, though likely still too small for
+  a robust statistical comparison — worth continuing to accumulate more
+  before finalizing sample size.
+- Caveat to remember for the writeup: /wl reports OpenDota-tracked
+  matches, not necessarily true lifetime match count — treat as "matches
+  available to analyze," not literal career total. Also: match-history
+  privacy settings mean some India-tagged players are excluded from any
+  match-count-based analysis entirely, which is itself a form of sample
+  bias worth naming explicitly (not hiding).
+- Open question: how many India-tagged accounts, cumulatively, is
+  "enough" for a real comparison sample? Need to decide and pre-register
+  a target N in CLAIM.md rather than deciding after seeing how the
+  numbers look.
