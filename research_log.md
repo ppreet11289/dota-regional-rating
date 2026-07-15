@@ -129,3 +129,17 @@ gone from memory within weeks if it isn't written down here.
   "enough" for a real comparison sample? Need to decide and pre-register
   a target N in CLAIM.md rather than deciding after seeing how the
   numbers look.
+
+  ## 2026-07-14 — Session 2
+
+- What I did: ran accumulate_india_sample.py to target completion.
+- What happened: checked 1,638 total SEA-cluster accounts. 51 tagged
+  "IN" (~3.1% true India rate in this pool — a real, useful number for
+  the writeup, not just "small"). 30 of those 51 meet the >=50 match
+  threshold set in CLAIM.md.
+- What this means: sample size target (30) reached. Data collection
+  phase for the India-tagged subgroup is essentially done for now.
+- Open question / next step: still need a matched comparison sample —
+  30 random non-India SEA players (same match-count range) to actually
+  test the revised hypothesis against. Then move to Stage 2: implement
+  TrueSkill/Glicko and compare rating behavior between the two groups.
